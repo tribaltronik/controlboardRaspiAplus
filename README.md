@@ -20,9 +20,11 @@ INSTALLATION INSTRUCTIONS:
 
 7) Install bcm2835: http://www.raspberry-projects.com/pi/programming-in-c/c-libraries/bcm2835-by-mike-mccauley
 
-8) Install Forever: npm install forever -g
+8) Install i2c: https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c
 
-9) Get controlboardRaspiAplus:
+9) Install Forever: npm install forever -g
+
+10) Get controlboardRaspiAplus:
 
 sudo git clone https://github.com/tribaltronik/controlboardRaspiAplus
 cd controlboardRaspiAplus
