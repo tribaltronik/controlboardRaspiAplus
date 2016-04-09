@@ -1,0 +1,16 @@
+
+# Startup script for Linux-based systems for running a Node.js app when rebooting, using an /etc/init.d script.
+
+########### Instructions #######################################
+
+>> controlboardRaspiAplus <<
+# Copy the startup script to your /etc/init.d directory:
+
+cd /home/pi/controlboardRaspiAplus/init.d
+sudo cp controlboardRaspiAplus /etc/init.d/
+
+# Add node-app to the default runlevels:
+
+cd /etc/init.d
+sudo chmod u+x controlboardRaspiAplus
+sudo update-rc.d controlboardRaspiAplus defaults
