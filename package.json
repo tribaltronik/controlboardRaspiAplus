@@ -1,0 +1,31 @@
+{
+  "name": "controlboardRaspiAplus",
+  "version": "0.0.3",
+  "description": "controlboard - Home Automation and Surveillance",
+  "main": "server.js",
+  "scripts": {
+    "start": "sudo server.js"
+  },
+  "keywords": [
+    "Automation",
+    "Control",
+    "Home",
+    "Domotic",
+    "Controlboard"
+  ],
+  "author": "Tiago Ricardo",
+  "license": "ISC",
+  "dependencies": {
+    "express": "latest",
+    "cron": "^1.0.9",
+    "fs": "0.0.2",
+    "util" : "latest",
+    "mqtt": "latest",
+    "pi-blaster.js": "0.0.2",
+    "node-dht-sensor": "latest",
+    "rpi-433": "^1.1.1",
+    "lame" : "latest",
+    "speaker" : "latest",
+    "adm-zip" : "latest"
+  }
+}
