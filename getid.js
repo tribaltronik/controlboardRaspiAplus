@@ -2,5 +2,5 @@ var common = require('./lib/common.js');
 
 common.getID(function(ID){
 
-		console.log("Device ID:" + mainDeviceId);
+		console.log("Device ID:" + ID);
 	}); //config.settings.deviceID;
