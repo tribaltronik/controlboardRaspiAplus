@@ -1,0 +1,13 @@
+{
+  "//": "ControlBoardRaspiAplus config JSON",
+  "settings": {
+	    "httpServer": {
+	      "enabled": true,
+	      "port": 3000      
+	    },
+	    "mqtt":{
+		    "server":"mqtt://mqtt.controlboard.net:1883",
+		    "heartbeatIntervalSecs":"60"
+	    }
+  }
+}
