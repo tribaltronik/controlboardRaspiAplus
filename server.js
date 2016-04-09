@@ -1,0 +1,158 @@
+/*
+* Date: 9/4/2016
+* Author: Tiago Ricardo
+* Description: Main process of system
+*/
+
+// Necessary modules
+var mqtt = require('mqtt');
+var express = require('express')
+var app = express();
+var path = require('path');
+var fs = require('fs');
+var exec = require('child_process').exec;
+var child_process = require('child_process');
+var packageJSON = require('./package.json');
+var child;
+
+var systemInfo = require('./lib/systemstatus.js');
+var common = require('./lib/common.js');
+var config = require('./config.json');
+var mainDeviceId;
+var DeviceIP;
+
+common.getID(function(ID){
+		mainDeviceId = ID+"raspi";
+		console.log("Device ID:" + mainDeviceId);
+	}); //config.settings.deviceID;
+common.getIP(function(IP){
+		DeviceIP = IP;
+		console.log("Device IP:" + DeviceIP);
+	}); //config.settings.deviceID;	
+
+//Load config file JSON
+var alarmState = "unlock";
+var startTime = +new Date();
+
+
+// MQTT connection to broker
+var myUserId = ''  // your DIoTY userId
+  , myPwd = ''              // your DIoTY password
+  , clientMQTT = mqtt.connect(config.settings.mqtt.server);
+
+clientMQTT.on('error', function (error) 
+{
+  // message is Buffer 
+  console.log('mqtt error: ' + error);
+  rgbled.ON_RED();
+});
+
+clientMQTT.on('connect', function () 
+{
+	console.log("MQTT Connected ID:" + mainDeviceId);
+  clientMQTT.subscribe(mainDeviceId+ '/status');
+  clientMQTT.subscribe(mainDeviceId+ '/topics');
+  clientMQTT.subscribe(mainDeviceId+ '/alarm');
+  
+  //Start send info from system
+  systemInfo.Start(clientMQTT,mainDeviceId);
+
+  // starts the updater cron
+  //updater.Start(clientMQTT,mainDeviceId);
+
+
+});
+  
+clientMQTT.on('message', function (topic, message) {
+	
+	if(topic == mainDeviceId+ '/alarm')
+	{
+		try {
+			var jsonStatus = JSON.parse(message);
+			if(jsonStatus.value == "lock"  || jsonStatus.value == "unlock")
+			{
+				console.log('Alarm toogle.');
+				alarmState = jsonStatus.value;
+			}
+		}
+		catch(err) {
+		    console.log("Error:"+err.message);
+		}
+	}
+	else if(topic == mainDeviceId+ "/status" && message == "alive")
+	{
+		console.log("Send status");
+		var end = +new Date();
+		var runningTimems = (end - startTime);
+		clientMQTT.publish(mainDeviceId +'/status',JSON.stringify({'version': packageJSON.version +' - CB' ,'runtime':common.convertMillisecondsToDigitalClock(runningTimems).clock,'ip':DeviceIP}), {retain: false});
+	}
+    else if(topic == mainDeviceId+ "/topics" && message == "topics")
+	{
+		console.log("Send topics");
+		clientMQTT.publish(mainDeviceId +'/topics',JSON.stringify({'topics': [{'topic':'temp','description':'Temperature'},{'topic':'hum','description':'Humidity'},{'topic':'433','description':'433MHz communication'},{'topic':'status','description':'Status of RaspberryPi(Running time, IP...)'}]}), {retain: true});
+	}
+    else if(topic == mainDeviceId+ "/update" && message == "update")
+	{
+		console.log("run Git pull");
+		child = exec("sudo git pull", {cwd: '/home/pi/controlboarddevkit'}, function (error, stdout, stderr) {
+			if (error !== null) {
+				console.log('exec error: ' + error);
+			} else {
+				/*
+				exec("sudo service controlboard start", function(err, stdout, stderr) {
+					console.log("Service Control Board Start " ); console.log(err);
+				});
+				*/
+			}
+		});
+	}
+});
+  
+
+
+// »»»»»» Server
+app.get('/', function (req, res) {
+  var end = +new Date();
+var runningTimems = (end - startTime);
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.write('Control Board Device. - ');
+  res.write("Running Time: " + common.convertMillisecondsToDigitalClock(runningTimems).clock  + " Totalms:"  + runningTimems + "ms");
+  res.end();
+});
+
+app.get('/runtime', function (req, res) {
+  var end = +new Date();
+  var runningTimems = (end - startTime);
+  res.send(common.convertMillisecondsToDigitalClock(runningTimems).clock)
+});
+
+app.listen(config.settings.httpServer.port);
+
+/* server started */  
+console.log('Control Board Dev Kit device is running on port 3000'); 
+
+//console.log("Pid: " +process.pid);
+console.log("Starting Control Board Dev Kit");
+ 
+ run = function () {
+  //require('./startup').startup().done();
+};
+ 
+ var command = process.argv[2];
+if(!command || command === "run") {
+  run();
+} else {
+  logFile = path.resolve(__dirname, '../../controlboard-daemon.log');
+  pidFile = path.resolve(__dirname, '../../controlboard.pid');
+
+  init.simple({
+    pidfile: pidFile,
+    logfile: logFile,
+    command: process.argv[3],
+    run: run
+  });
+}
+
+
+
+
